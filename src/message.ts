@@ -1,6 +1,7 @@
 import { Message } from 'discord.js';
 
 import { commandCmd } from './commands/cmd';
+import { commandList } from './commands/list';
 import { commandCustom } from './commands/custom';
 
 async function handleCommand(message: Message) {
@@ -8,6 +9,8 @@ async function handleCommand(message: Message) {
   switch (commandName) {
   case 'cmd':
     return commandCmd(message, message.content.split(' ').slice(1));
+  case 'list':
+    return commandList(message);
   default:
     return commandCustom(message, commandName);
   }
