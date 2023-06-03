@@ -7,8 +7,10 @@ services:
       - "./package.json:/app/package.json"
       - "./package-lock.json:/app/package-lock.json"
       - "./src:/app/src"
+      - "./migrations:/app/migrations"
       - "./.env:/app/.env"
       - "./docker-entrypoint.sh:/app/docker-entrypoint.sh"
+      - "./docker-start.sh:/app/docker-start.sh"
     depends_on:
       - postgres
     environment:

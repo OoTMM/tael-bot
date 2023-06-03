@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "migrate": "node-pg-migrate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,7 +21,9 @@
   "private": true,
   "dependencies": {
     "discord.js": "^14.11.0",
-    "dotenv": "^16.1.3"
+    "dotenv": "^16.1.3",
+    "node-pg-migrate": "^6.2.2",
+    "pg": "^8.11.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.1",
