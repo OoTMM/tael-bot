@@ -1,0 +1,15 @@
+FROM node:20 AS builder
+
+WORKDIR /app
+COPY . /app
+RUN npm i \
+  && npm run build \
+  && cp -r package.json package-lock.json migrations docker-start.sh dist/ \
+  && cd dist \
+  && npm i --production
+
+FROM node:20
+
+WORKDIR /app
+COPY --from=builder /app/dist /app
+CMD [ "/app/docker-start.sh", "node", "./app.min.js" ]

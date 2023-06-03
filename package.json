@@ -5,6 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "start": "ts-node src/index.ts",
+    "build": "rollup -c rollup.config.mjs",
     "migrate": "node-pg-migrate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,6 +28,8 @@
     "pg-promise": "^11.5.0"
   },
   "devDependencies": {
+    "rollup": "^3.23.0",
+    "rollup-plugin-typescript2": "^0.34.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.3"
   }

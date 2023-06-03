@@ -6,4 +6,4 @@ set -e
 npm run migrate up
 
 # Start
-exec npm start
+exec "$@"
