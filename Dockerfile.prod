@@ -11,5 +11,7 @@ RUN npm i \
 FROM node:20
 
 WORKDIR /app
+RUN adduser --disabled-password --gecos '' taelbot
 COPY --from=builder /app/dist /app
+USER taelbot
 CMD [ "/app/docker-start.sh", "node", "./app.min.js" ]
