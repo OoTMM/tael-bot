@@ -2,11 +2,27 @@ version: '3.0'
 services:
   app:
     build: .
-    ports:
-      - "3000:3000"
     volumes:
       - "/app/node_modules"
       - "./package.json:/app/package.json"
       - "./package-lock.json:/app/package-lock.json"
       - "./src:/app/src"
+      - "./.env:/app/.env"
       - "./docker-entrypoint.sh:/app/docker-entrypoint.sh"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgres://taelbot:password@postgres:5432/taelbot"
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=taelbot
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=taelbot
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+
+volumes:
+  postgres-data:
