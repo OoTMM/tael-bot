@@ -11,6 +11,7 @@ services:
       - "./.env:/app/.env"
       - "./docker-entrypoint.sh:/app/docker-entrypoint.sh"
       - "./docker-start.sh:/app/docker-start.sh"
+      - "./tsconfig.json:/app/tsconfig.json"
     depends_on:
       - postgres
     environment:
