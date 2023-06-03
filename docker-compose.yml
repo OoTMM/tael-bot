@@ -1,0 +1,12 @@
+version: '3.0'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - "/app/node_modules"
+      - "./package.json:/app/package.json"
+      - "./package-lock.json:/app/package-lock.json"
+      - "./src:/app/src"
+      - "./docker-entrypoint.sh:/app/docker-entrypoint.sh"
