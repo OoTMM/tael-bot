@@ -4,7 +4,7 @@ import db from '../db';
 
 export async function commandList(message: Message) {
   /* Get the list of custom commands */
-  const result = await db.any('SELECT name FROM commands_active ORDER BY name', []);
+  const result = await db.any('SELECT name FROM commands ORDER BY name', []);
   const names = result.map((row) => row.name);
   const channel = message.channel!;
 

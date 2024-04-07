@@ -4,7 +4,7 @@ CREATE TABLE commands (
   name TEXT NOT NULL,
   value TEXT NOT NULL,
   active BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 );
 
 CREATE INDEX commands_name_idx ON commands (name, created_at);
