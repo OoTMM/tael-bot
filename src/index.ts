@@ -1,21 +1,15 @@
-import 'dotenv/config';
+import discord from './discord';
 
-import { Client } from 'discord.js';
+function shutdown() {
+  console.log('Shutting down...');
 
-import { handleMessage } from './message';
+  try {
+    discord.destroy();
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+}
 
-const client = new Client({
-  intents: [
-    'Guilds',
-    'GuildMessages',
-    'MessageContent',
-  ]
-});
-
-client.on('ready', (c) => {
-  console.log(`Logged in as ${c.user?.tag}!`);
-});
-
-client.on('messageCreate', handleMessage);
-
-client.login(process.env.DISCORD_TOKEN);
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

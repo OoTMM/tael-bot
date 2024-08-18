@@ -1,6 +1,9 @@
-FROM node:20
+FROM node:22
 
 WORKDIR /app
 
-ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
-CMD [ "/app/docker-start.sh", "npm", "start" ]
+RUN apt-get update && apt-get install -y \
+  dumb-init
+
+ENTRYPOINT [ "dumb-init", "/app/docker-entrypoint.sh" ]
+CMD [ "/app/docker-start.sh", "tsx", "src/index.ts" ]
