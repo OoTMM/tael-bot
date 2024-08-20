@@ -126,12 +126,20 @@ class StreamSystem {
     await db.tx(async (tx) => {
       const txPromises: Promise<null>[] = [];
 
+      /* Check which streams are banned */
+      const bannedUserIds = await tx.manyOrNone<string>('SELECT user_id FROM streams_twitch_blacklist WHERE user_id = ANY($1)', [streams.map(x => x.user_id)]);
+      const bannedUserIdsSet = new Set(bannedUserIds);
+
       /* Check which streams already existed */
       const rawStoredExistingStreams = await tx.manyOrNone<StoredTwitchStream>('SELECT * FROM streams_twitch WHERE id = ANY($1) FOR UPDATE', [streams.map(x => x.id)]);
       const storedExistingStreamsMap = new Map(rawStoredExistingStreams.map(x => [x.id, x]));
 
       const newMessagePromises: Promise<{ id: string, discordMessageId: string }>[] = [];
       for (const s of streams) {
+        if (bannedUserIdsSet.has(s.user_id)) {
+          continue;
+        }
+
         if (!storedExistingStreamsMap.has(s.id)) {
           /* New stream, need to post the message */
           const p = discordChannel.send(streamNewMessage(s));
@@ -241,14 +249,28 @@ class StreamSystem {
     await this.pollTwitch();
     await this.checkExpiredTwitch();
   }
-}
 
-let streamSystem: StreamSystem | null = null;
+  async blacklist(username: string) {
+    /* Fetch the ID from twitch */
+    const twitch = await getTwitchClient();
+    const userQuery = await twitch.users({ login: username });
+    const user = userQuery.data[0];
+    if (!user) {
+      throw new Error('User not found');
+    }
 
-export function getStreamSystem() {
-  if (!streamSystem) {
-    streamSystem = new StreamSystem();
+    /* Ban */
+    await db.none('INSERT INTO streams_twitch_blacklist (user_id, user_login) VALUES ($1, $2) ON CONFLICT DO UPDATE', [user.id, user.login]);
+
+    /* Force expire */
+    await db.none("UPDATE streams_twitch SET updated_at = (NOW() - '12 hours'::interval) WHERE user_id = $1", [user.id]);
+    await this.checkExpiredTwitch();
   }
 
-  return streamSystem;
+  async unblacklist(username: string) {
+    await db.none('DELETE FROM streams_twitch_blacklist WHERE user_login = $1', [username]);
+  }
 }
+
+const streamSystem = new StreamSystem();
+export default streamSystem;

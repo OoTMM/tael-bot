@@ -33,6 +33,29 @@ export type TwitchStreamsQuery = {
   game_id?: string | string[];
 };
 
+export type TwitchUser = {
+  id: string;
+  login: string;
+  display_name: string;
+  type: string;
+  broadcaster_type: string;
+  description: string;
+  profile_image_url: string;
+  offline_image_url: string;
+  view_count: number;
+  email: string;
+  created_at: Date;
+};
+
+export type TwitchUsersQuery = {
+  id?: string | string[];
+  login?: string | string[];
+};
+
+export type TwitchUsersResponse = {
+  data: TwitchUser[];
+};
+
 class TwitchClient {
   private httpClient: AxiosInstance;
   private httpAuthClient: AxiosInstance;
@@ -125,6 +148,21 @@ class TwitchClient {
     }
 
     const response = await this.httpClient.get<TwitchStreamsResponse>('streams', { params });
+    return response.data;
+  }
+
+  async users(query: TwitchUsersQuery): Promise<TwitchUsersResponse> {
+    const params = new URLSearchParams();
+    if (query.id) {
+      const ids = Array.isArray(query.id) ? query.id : [query.id];
+      ids.forEach((id) => params.append('id', id));
+    }
+    if (query.login) {
+      const logins = Array.isArray(query.login) ? query.login : [query.login];
+      logins.forEach((login) => params.append('login', login));
+    }
+
+    const response = await this.httpClient.get<TwitchUsersResponse>('users', { params });
     return response.data;
   }
 }

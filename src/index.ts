@@ -1,14 +1,12 @@
 import discord from './discord';
 import './services/twitch';
-import { getStreamSystem } from './stream';
-
-const streamSystem = getStreamSystem();
+import StreamSystem from './stream';
 
 function shutdown() {
   console.log('Shutting down...');
 
   try {
-    streamSystem.stop();
+    StreamSystem.stop();
     discord.destroy();
   } catch (e) {
     console.error(e);
@@ -19,4 +17,4 @@ function shutdown() {
 process.on('SIGINT', shutdown);
 process.on('SIGTERM', shutdown);
 
-streamSystem.start();
+StreamSystem.start();
