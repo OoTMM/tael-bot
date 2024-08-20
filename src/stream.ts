@@ -14,9 +14,14 @@ const GAME_IDS = {
 function isComboStream(stream: TwitchStream) {
   const tags = (stream.tags || []).map(x => x.toLowerCase());
   const isGameZelda = stream.game_id === GAME_IDS.ZELDA_OOT || stream.game_id === GAME_IDS.ZELDA_OOT_MQ || stream.game_id === GAME_IDS.ZELDA_MM;
+  const hasTagOoTMM = tags.includes('ootmm') || tags.includes('ootxmm');
+
+  /* Very explicit tags */
+  if (tags.some(x => x.match(/ootx?mm(combo)?rando(mizer)?/)))
+    return true;
 
   if (stream.game_id === GAME_IDS.GAME_DEV) {
-    return tags.includes('ootmm') && tags.includes('zelda');
+    return hasTagOoTMM && tags.includes('zelda');
   }
 
   const hasOotr = tags.includes('ootr') || tags.includes('ootrandomizer');
@@ -26,10 +31,10 @@ function isComboStream(stream: TwitchStream) {
     return true;
   }
 
-  if (tags.includes('ootmm')) return true;
+  if (hasTagOoTMM) return true;
 
   if (isGameZelda) {
-    if (stream.title.toLowerCase().match(/\bootmm\b/)) {
+    if (stream.title.toLowerCase().match(/\bootx?mm\b/)) {
       return true;
     }
 
