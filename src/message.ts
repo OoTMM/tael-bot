@@ -19,9 +19,11 @@ async function handleCommand(message: Message) {
   }
 }
 
-export async function handleMessage(message: Message) {
+export function handleMessage(message: Message) {
   /* Detect commands */
   if (message.content[0] === '!') {
-    return handleCommand(message);
+    handleCommand(message).then(() => null).catch((e) => {
+      message.reply(`Error: ${e}`);
+    });
   }
 }

@@ -2,22 +2,14 @@ import { Message } from 'discord.js';
 import { isModerator, msgGuard } from '../util';
 import StreamSystem from '../stream';
 
-function cmdPromiseWrap(message: Message, promise: Promise<any>) {
-  return promise.catch((e) => {
-    message.reply(`Error: ${e.message}`);
-    return Promise.reject(e);
-  });
-}
-
 async function commandTwitchBlacklist(message: Message, args: string[]) {
   if (args.length !== 1) {
     await message.reply('Usage: !twitch blacklist <channel>');
     return;
   }
 
-  return cmdPromiseWrap(message, StreamSystem.blacklist(args[0])).then(() => {
-    message.reply(`Blacklisted ${args[0]}`);
-  });
+  await StreamSystem.blacklist(args[0]);
+  await message.reply(`Blacklisted ${args[0]}`);
 }
 
 async function commandTwitchUnblacklist(message: Message, args: string[]) {
@@ -26,9 +18,8 @@ async function commandTwitchUnblacklist(message: Message, args: string[]) {
     return;
   }
 
-  return cmdPromiseWrap(message, StreamSystem.unblacklist(args[0])).then(() => {
-    message.reply(`Unblacklisted ${args[0]}`);
-  });
+  await StreamSystem.unblacklist(args[0]);
+  await message.reply(`Unblacklisted ${args[0]}`);
 }
 
 export async function commandTwitch(message: Message, args: string[]) {

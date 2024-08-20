@@ -127,8 +127,9 @@ class StreamSystem {
       const txPromises: Promise<null>[] = [];
 
       /* Check which streams are banned */
-      const bannedUserIds = await tx.manyOrNone<string>('SELECT user_id FROM streams_twitch_blacklist WHERE user_id = ANY($1)', [streams.map(x => x.user_id)]);
-      const bannedUserIdsSet = new Set(bannedUserIds);
+      const bannedUserIds = await tx.manyOrNone<{ user_id: string }>('SELECT user_id FROM streams_twitch_blacklist WHERE user_id = ANY($1)', [streams.map(x => x.user_id)]);
+      const bannedUserIdsSet = new Set(bannedUserIds.map(x => x.user_id));
+      console.log("Banned IDs", bannedUserIds);
 
       /* Check which streams already existed */
       const rawStoredExistingStreams = await tx.manyOrNone<StoredTwitchStream>('SELECT * FROM streams_twitch WHERE id = ANY($1) FOR UPDATE', [streams.map(x => x.id)]);
@@ -260,7 +261,12 @@ class StreamSystem {
     }
 
     /* Ban */
-    await db.none('INSERT INTO streams_twitch_blacklist (user_id, user_login) VALUES ($1, $2) ON CONFLICT DO UPDATE', [user.id, user.login]);
+    await db.none(`
+      INSERT INTO streams_twitch_blacklist (user_id, user_login)
+      VALUES ($1, $2)
+      ON CONFLICT (user_id)
+      DO UPDATE SET user_login = EXCLUDED.user_login
+    `, [user.id, user.login]);
 
     /* Force expire */
     await db.none("UPDATE streams_twitch SET updated_at = (NOW() - '12 hours'::interval) WHERE user_id = $1", [user.id]);
