@@ -129,7 +129,6 @@ class StreamSystem {
       /* Check which streams are banned */
       const bannedUserIds = await tx.manyOrNone<{ user_id: string }>('SELECT user_id FROM streams_twitch_blacklist WHERE user_id = ANY($1)', [streams.map(x => x.user_id)]);
       const bannedUserIdsSet = new Set(bannedUserIds.map(x => x.user_id));
-      console.log("Banned IDs", bannedUserIds);
 
       /* Check which streams already existed */
       const rawStoredExistingStreams = await tx.manyOrNone<StoredTwitchStream>('SELECT * FROM streams_twitch WHERE id = ANY($1) FOR UPDATE', [streams.map(x => x.id)]);
