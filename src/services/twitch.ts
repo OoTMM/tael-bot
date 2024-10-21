@@ -1,4 +1,4 @@
-import Axios, { AxiosInstance } from 'axios';
+import Axios, { AxiosError, AxiosInstance } from 'axios';
 
 export type TwitchStream = {
   id: string;
@@ -93,15 +93,16 @@ class TwitchClient {
       return request;
     });
 
-    this.httpClient.interceptors.response.use(response => response, async (error) => {
-      if (error.status !== 401) {
+    this.httpClient.interceptors.response.use(response => response, async (error: AxiosError) => {
+      if (error.code !== 'ERR_BAD_REQUEST') {
         return Promise.reject(error);
       }
 
       const originalRequest = error.config;
-      if (originalRequest.headers['X-Retry']) {
+      if (!originalRequest || originalRequest.headers['X-Retry']) {
         return Promise.reject(error);
       }
+
       const tokenPromise = this.getToken();
       this.tokenError = false;
       this.token = tokenPromise;

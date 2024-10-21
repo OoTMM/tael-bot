@@ -1,7 +1,9 @@
+import { ChannelType, MessageCreateOptions as DiscordMessageCreateOptions, Message, MessageFlags, hyperlink } from 'discord.js';
+
 import discordClient from './discord';
 import db from './db';
 import { getTwitchClient, TwitchStream, TwitchStreamsQuery } from './services/twitch';
-import { ChannelType, MessageCreateOptions as DiscordMessageCreateOptions, Message, MessageFlags, hyperlink } from 'discord.js';
+import CONFIG from './config';
 
 const GAME_IDS = {
   ZELDA_OOT: '11557',
@@ -110,7 +112,7 @@ class StreamSystem {
     if (streams.length === 0) return;
 
     const streamsMap = new Map(streams.map(x => [x.id, x]));
-    const discordChannel = await discordClient.channels.fetch('1274821923280523334');
+    const discordChannel = await discordClient.channels.fetch(CONFIG.discord.twitchChannel);
     if (!discordChannel) {
       console.error('Stream integration: Failed to fetch discord channel');
       return;
@@ -216,7 +218,7 @@ class StreamSystem {
   }
 
   private async checkExpiredTwitch() {
-    const channel = await discordClient.channels.fetch('1274821923280523334');
+    const channel = await discordClient.channels.fetch(CONFIG.discord.twitchChannel);
     if (!channel) {
       console.error('Stream integration: Failed to fetch discord channel');
       return;
