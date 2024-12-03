@@ -5,7 +5,7 @@ COPY . /app
 RUN corepack enable pnpm \
   && pnpm i \
   && pnpm build \
-  && cp -r package.json package-lock.json migrations docker-start.sh dist/ \
+  && cp -r package.json pnpm-lock.yaml migrations docker-start.sh dist/ \
   && cd dist \
   && pnpm i --production
 

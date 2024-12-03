@@ -3,7 +3,7 @@
 !src
 !docker-entrypoint.sh
 !docker-start.sh
-!package-lock.json
+!pnpm-lock.yaml
 !package.json
 !rollup.config.mjs
 !tsconfig.json
