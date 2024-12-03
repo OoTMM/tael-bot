@@ -14,7 +14,8 @@ FROM node:22
 WORKDIR /app
 RUN apt-get update && apt-get install -y \
   dumb-init \
-  && adduser --disabled-password --gecos '' taelbot
+  && adduser --disabled-password --gecos '' taelbot \
+  && corepack enable pnpm
 COPY --from=builder /app/dist /app
 USER taelbot
 ENTRYPOINT ["dumb-init", "--"]
