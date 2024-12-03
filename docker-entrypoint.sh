@@ -3,8 +3,7 @@
 set -e
 
 # Install deps
-npm install
-npm install -g tsx
+pnpm install
 
 # Start
 exec "$@"

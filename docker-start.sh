@@ -3,7 +3,7 @@
 set -e
 
 # Migrate
-npm run migrate up
+pnpm migrate up
 
 # Start
 exec "$@"

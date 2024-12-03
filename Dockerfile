@@ -3,7 +3,8 @@ FROM node:22
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
-  dumb-init
+  dumb-init \
+  && corepack enable pnpm
 
 ENTRYPOINT [ "dumb-init", "/app/docker-entrypoint.sh" ]
-CMD [ "/app/docker-start.sh", "tsx", "src/index.ts" ]
+CMD [ "pnpm", "start" ]

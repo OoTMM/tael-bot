@@ -4,7 +4,7 @@ services:
     volumes:
       - "/app/node_modules"
       - "./package.json:/app/package.json"
-      - "./package-lock.json:/app/package-lock.json"
+      - "./pnpm-lock.yaml:/app/pnpm-lock.yaml"
       - "./src:/app/src"
       - "./migrations:/app/migrations"
       - "./docker-entrypoint.sh:/app/docker-entrypoint.sh"
