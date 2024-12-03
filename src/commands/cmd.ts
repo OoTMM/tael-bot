@@ -1,8 +1,7 @@
 import { Message } from 'discord.js';
-import { errors } from 'pg-promise';
 
 import { msgGuard, isModerator } from '../util';
-import db from '../db';
+import { db } from '../db';
 
 function validateCmdName(name: string): string | null {
   if (!name) return null;

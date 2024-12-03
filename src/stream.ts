@@ -1,7 +1,7 @@
-import { ChannelType, MessageCreateOptions as DiscordMessageCreateOptions, Message, MessageFlags, hyperlink } from 'discord.js';
+import { ChannelType, MessageCreateOptions as DiscordMessageCreateOptions, Message, MessageFlags, hyperlink, EmbedBuilder, Embed, Channel, SendableChannels } from 'discord.js';
 
 import discordClient from './discord';
-import db from './db';
+import { db, DatabaseTransaction } from './db';
 import { getTwitchClient, TwitchStream, TwitchStreamsQuery } from './services/twitch';
 import CONFIG from './config';
 
@@ -27,26 +27,44 @@ function isComboStream(stream: TwitchStream) {
   return false;
 }
 
-function streamRawMessage(stream: TwitchStream): string {
-  const url = `https://twitch.tv/${stream.user_login}`;
-  const content = `${hyperlink(stream.user_name, url)} - ${stream.title}`;
-  return content;
+function zeroPad(num: number, places: number) {
+  return String(num).padStart(places, '0');
 }
 
-function streamNewMessage(stream: TwitchStream): DiscordMessageCreateOptions {
-  const content = streamRawMessage(stream);
-  const flags = MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications;
+function durationString(timeInSeconds: number) {
+  const hours = Math.floor(timeInSeconds / 3600);
+  const minutes = Math.floor((timeInSeconds % 3600) / 60);
+  const seconds = Math.floor(timeInSeconds % 60);
 
-  return { content, flags };
+  if (hours > 0) {
+    return `${zeroPad(hours, 2)}:${zeroPad(minutes, 2)}:${zeroPad(seconds, 2)}`;
+  } else {
+    return `${minutes}:${zeroPad(seconds, 2)}`;
+  }
+}
+
+function streamEmbed(stream: TwitchStream): EmbedBuilder {
+  const url = `https://www.twitch.tv/${stream.user_name}`;
+  const cacheBustKey = Math.floor(Date.now() / (1000 * 60 * 5));
+  const thumbnail_url_raw = stream.thumbnail_url.replace('{width}', '640').replace('{height}', '360');
+  const thumbnail_url = `${thumbnail_url_raw}&_t_cache=${cacheBustKey}`;
+  const streamDateStart = new Date(stream.started_at);
+  const streamDateCurrent = new Date();
+  const durationSeconds = (streamDateCurrent.getTime() - streamDateStart.getTime()) / 1000;
+  const embed = new EmbedBuilder()
+    .setURL(url)
+    .setAuthor({ name: stream.user_name, url: url })
+    .setTitle(stream.title)
+    .setFooter({ text: `Viewers: ${stream.viewer_count} \u2022 Duration: ${durationString(durationSeconds)} \u2022 Language: ${stream.language}` })
+    .setImage(thumbnail_url);
+
+  return embed;
 }
 
 type StoredTwitchStream = {
   id: string;
   user_id: string;
   discord_message_id: string;
-  user_name: string;
-  title: string;
-  created_at: Date;
   updated_at: Date;
 }
 
@@ -83,10 +101,21 @@ class StreamSystem {
     }
   }
 
+  private async handleTwitchStreamNewMessage(tx: DatabaseTransaction, channel: SendableChannels, stream: TwitchStream) {
+    const msg = await channel.send({ embeds: [streamEmbed(stream)], flags: MessageFlags.SuppressNotifications });
+    await tx.none('INSERT INTO streams_twitch (id, user_id, discord_message_id) VALUES ($1, $2, $3)', [stream.id, stream.user_id, msg.id]);
+  }
+
+  private async handleTwitchStreamUpdateMessage(tx: DatabaseTransaction, channel: SendableChannels, stream: TwitchStream, storedStream: StoredTwitchStream) {
+    return Promise.all([
+      channel.messages.fetch(storedStream.discord_message_id).catch((x) => null).then((msg) => msg && msg.edit({ embeds: [streamEmbed(stream)] })),
+      tx.none('UPDATE streams_twitch SET updated_at = NOW() WHERE id = $1', [stream.id]),
+    ]);
+  }
+
   private async handleTwitchStreams(streams: TwitchStream[]) {
     if (streams.length === 0) return;
 
-    const streamsMap = new Map(streams.map(x => [x.id, x]));
     const discordChannel = await discordClient.channels.fetch(CONFIG.discord.twitchChannel);
     if (!discordChannel) {
       console.error('Stream integration: Failed to fetch discord channel');
@@ -97,11 +126,9 @@ class StreamSystem {
       return;
     }
 
-    const updatePromises: Promise<void>[] = [];
-
     /* Start a transaction */
     await db.tx(async (tx) => {
-      const txPromises: Promise<null>[] = [];
+      const promises: Promise<any>[] = [];
 
       /* Check which streams are banned */
       const bannedUserIds = await tx.manyOrNone<{ user_id: string }>('SELECT user_id FROM streams_twitch_blacklist WHERE user_id = ANY($1)', [streams.map(x => x.user_id)]);
@@ -111,48 +138,23 @@ class StreamSystem {
       const rawStoredExistingStreams = await tx.manyOrNone<StoredTwitchStream>('SELECT * FROM streams_twitch WHERE id = ANY($1) FOR UPDATE', [streams.map(x => x.id)]);
       const storedExistingStreamsMap = new Map(rawStoredExistingStreams.map(x => [x.id, x]));
 
-      const newMessagePromises: Promise<{ id: string, discordMessageId: string }>[] = [];
       for (const s of streams) {
         if (bannedUserIdsSet.has(s.user_id)) {
           continue;
         }
 
-        if (!storedExistingStreamsMap.has(s.id)) {
-          /* New stream, need to post the message */
-          const p = discordChannel.send(streamNewMessage(s));
-          newMessagePromises.push(p.then((msg) => ({ id: s.id, discordMessageId: msg.id })));
+        const storedStream = storedExistingStreamsMap.get(s.id);
+        if (!storedStream) {
+          /* Create the stream */
+          promises.push(this.handleTwitchStreamNewMessage(tx, discordChannel, s));
         } else {
-          /* Stream already exists */
-          const storedStream = storedExistingStreamsMap.get(s.id)!;
-          if (s.title === storedStream.title) {
-            /* Nothing changed */
-            txPromises.push(tx.none('UPDATE streams_twitch SET updated_at = NOW() WHERE id = $1', [s.id]));
-            continue;
-          }
-
-          /* Update the message */
-          updatePromises.push((async () => {
-            const msg = await discordChannel.messages.fetch(storedStream.discord_message_id);
-            if (msg) {
-              await msg.edit(streamRawMessage(s));
-            }
-          })());
-
-          /* Update the stored stream */
-          txPromises.push(tx.none('UPDATE streams_twitch SET title = $1, updated_at = NOW() WHERE id = $2', [s.title, s.id]));
+          /* Update the stream */
+          promises.push(this.handleTwitchStreamUpdateMessage(tx, discordChannel, s, storedStream));
         }
       }
 
-      /* Update the stored streams */
-      const newMessages = await Promise.all(newMessagePromises);
-      for (const nm of newMessages) {
-        txPromises.push(tx.none('INSERT INTO streams_twitch (id, user_id, discord_message_id, user_name, title) VALUES ($1, $2, $3, $4, $5)', [nm.id, streamsMap.get(nm.id)!.user_id, nm.discordMessageId, streamsMap.get(nm.id)!.user_name, streamsMap.get(nm.id)!.title]));
-      }
-
-      await Promise.all(txPromises);
+      await Promise.all(promises);
     });
-
-    await Promise.all(updatePromises);
   }
 
   private async pollTwitch() {

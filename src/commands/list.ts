@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 
-import db from '../db';
+import { db } from '../db';
 
 export async function commandList(message: Message) {
   /* Get the list of custom commands */
@@ -9,5 +9,6 @@ export async function commandList(message: Message) {
   const channel = message.channel!;
 
   /* Send the list */
-  await channel.send(`Available commands:\n\n${names.join(', ')}`);
+  if (channel.isSendable())
+    await channel.send(`Available commands:\n\n${names.join(', ')}`);
 }

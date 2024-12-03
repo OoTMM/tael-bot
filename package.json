@@ -7,7 +7,8 @@
     "start": "tsx src/index.ts",
     "build": "rollup -c rollup.config.mjs",
     "migrate": "node-pg-migrate",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "typecheck": "tsc --noEmit"
   },
   "repository": {
     "type": "git",

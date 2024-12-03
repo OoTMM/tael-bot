@@ -7,4 +7,4 @@ RUN apt-get update && apt-get install -y \
   && corepack enable pnpm
 
 ENTRYPOINT [ "dumb-init", "/app/docker-entrypoint.sh" ]
-CMD [ "pnpm", "start" ]
+CMD [ "/app/docker-start.sh", "pnpm", "start" ]

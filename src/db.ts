@@ -4,6 +4,5 @@ const pgp = pgPromise({
   capSQL: true,
 });
 
-const db = pgp(process.env.DATABASE_URL!);
-
-export default db;
+export const db = pgp(process.env.DATABASE_URL!);
+export type DatabaseTransaction = Parameters<Parameters<typeof db.tx>[1]>[0];

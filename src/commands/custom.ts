@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 
-import db from '../db';
+import { db } from '../db';
 
 export async function commandCustom(message: Message, cmd: string) {
   /* Fetch the custom command */
@@ -12,5 +12,7 @@ export async function commandCustom(message: Message, cmd: string) {
   }
 
   const channel = message.channel!;
-  await channel.send(value);
+  if (channel.isSendable()) {
+    await channel.send(value);
+  }
 }
