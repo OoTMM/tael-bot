@@ -5,6 +5,7 @@ defmodule TaelBot.Application do
   def start(_type, _args) do
     children = [
       TaelBot.Repo,
+      Discord,
     ]
 
     opts = [strategy: :one_for_one, name: TaelBot.Supervisor]

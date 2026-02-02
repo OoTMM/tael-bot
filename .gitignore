@@ -6,7 +6,7 @@
 /old
 /.elixir_ls
 /.vscode
-/.envs/*.override*
+/envs/*.overrides*
 /data
 
 erl_crash.dump
