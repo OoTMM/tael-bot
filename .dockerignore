@@ -1,9 +1,0 @@
-*
-!migrations
-!src
-!docker-entrypoint.sh
-!docker-start.sh
-!pnpm-lock.yaml
-!package.json
-!rollup.config.mjs
-!tsconfig.json
