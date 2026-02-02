@@ -6,7 +6,10 @@
 /old
 /.elixir_ls
 /.vscode
+/.envs/*.override*
+/data
 
 erl_crash.dump
 *.ez
 tael_bot-*.tar
+
