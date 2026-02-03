@@ -2,11 +2,11 @@ defmodule Discord.Connection do
   use WebSockex
   require Logger
 
-  def start(url, opts) do
+  def start_link(url, opts) do
     token = Keyword.fetch!(opts, :token)
     intents = Keyword.fetch!(opts, :intents)
 
-    WebSockex.start(url, __MODULE__, %{
+    WebSockex.start_link(url, __MODULE__, %{
       token: token,
       intents: intents,
       heartbeat_interval: nil,
@@ -35,6 +35,12 @@ defmodule Discord.Connection do
       seq -> %{state | last_sequence: seq}
     end
     handle(data, state)
+  end
+
+  @impl true
+  def handle_info(:close, state) do
+    IO.puts("STOP IN WS")
+    {:close, state}
   end
 
   @impl true
