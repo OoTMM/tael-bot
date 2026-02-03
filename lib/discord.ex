@@ -22,6 +22,6 @@ defmodule Discord do
       #{DynamicSupervisor, strategy: :one_for_one, name: Discord.DynamicSupervisor}
     ]
 
-    Supervisor.init(children, strategy: :one_for_all)
+    Supervisor.init(children, [strategy: :one_for_all, shutdown: 5_000])
   end
 end
