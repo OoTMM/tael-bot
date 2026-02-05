@@ -14,6 +14,8 @@ config :tael_bot, TaelBot.Repo,
   database: env!("DB_NAME", :string, "data/data.db"),
   pool_size: 10
 
-config :tael_bot, Discord,
-  token: env!("DISCORD_TOKEN", :string),
-  intents: 512
+config :nostrum,
+  ffmpeg: false,
+  youtubedl: false,
+  streamlink: false,
+  token: env!("DISCORD_TOKEN", :string)

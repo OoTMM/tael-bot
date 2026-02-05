@@ -4,8 +4,9 @@ defmodule TaelBot.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      TaelBot.TaskSupervisor,
       TaelBot.Repo,
-      Discord,
+      TaelBot.DiscordConsumer,
     ]
 
     opts = [strategy: :one_for_one, name: TaelBot.Supervisor]

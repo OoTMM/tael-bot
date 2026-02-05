@@ -26,7 +26,7 @@ defmodule TaelBot.MixProject do
       {:ecto_sqlite3, "~> 0.22.0"},
       {:jason, "~> 1.4"},
       {:tesla, "~> 1.16"},
-      {:websockex, "~> 0.5.1"},
+      {:nostrum, "~> 0.10"},
     ]
   end
 end
