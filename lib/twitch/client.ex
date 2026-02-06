@@ -1,12 +1,12 @@
 defmodule Twitch.Client do
-  use GenServer
-
-  def start_link(_) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  defp middleware() do
+    [
+      {Tesla.Middleware.BaseUrl, "https://api.twitch.tv/helix"},
+      {Tesla.Middleware.JSON, engine: Jason},
+      {Tesla.Middleware.Headers, [{"Client-ID", Application.get_env(:tael_bot, Twitch)[:client_id]}]},
+      Twitch.AuthMiddleware
+    ]
   end
 
-  @impl true
-  def init(_) do
-    {:ok, nil}
-  end
+  def build(), do: Tesla.client(middleware())
 end
