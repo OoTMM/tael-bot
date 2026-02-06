@@ -27,6 +27,7 @@ defmodule TaelBot.MixProject do
       {:jason, "~> 1.4"},
       {:tesla, "~> 1.16"},
       {:nostrum, "~> 0.10"},
+      {:mint, "~> 1.0"},
     ]
   end
 end

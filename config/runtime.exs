@@ -19,3 +19,7 @@ config :nostrum,
   youtubedl: false,
   streamlink: false,
   token: env!("DISCORD_TOKEN", :string)
+
+config :tael_bot, Twitch,
+  client_id: env!("TWITCH_CLIENT_ID", :string),
+  client_secret: env!("TWITCH_CLIENT_SECRET", :string)

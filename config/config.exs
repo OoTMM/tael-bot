@@ -12,3 +12,5 @@ config :nostrum,
     :guild_messages,
     :message_content,
   ]
+
+config :tesla, adapter: Tesla.Adapter.Mint
