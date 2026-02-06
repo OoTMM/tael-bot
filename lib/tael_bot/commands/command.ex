@@ -3,7 +3,7 @@ defmodule TaelBot.Commands.Command do
   import Ecto.Changeset
 
   @type t() :: %__MODULE__{
-    id: String.t(),
+    id: integer(),
     name: String.t(),
     value: String.t(),
     created_at: NaiveDateTime.t() | nil

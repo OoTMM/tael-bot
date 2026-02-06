@@ -4,10 +4,6 @@ defmodule TaelBot.Commands do
 
   import Ecto.Query, only: [from: 2]
 
-  @handlers %{
-    "list" => TaelBot.Commands.Handlers.List
-  }
-
   @spec get(String.t()) :: Command.t() | nil
   def get(name) do
     Repo.get_by(Command, name: name)
@@ -20,7 +16,7 @@ defmodule TaelBot.Commands do
   end
 
   def list_names() do
-    q = from c in Command, select: c.name
+    q = from c in Command, select: c.name, order_by: [asc: c.name]
     Repo.all(q)
   end
 end

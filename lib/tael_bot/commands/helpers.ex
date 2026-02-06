@@ -5,7 +5,7 @@ defmodule TaelBot.Commands.Helpers do
     admin: 2
   }
 
-  def role_from_msg(msg) do
+  defp role_from_msg(msg) do
     {:ok, guild} = Nostrum.Cache.GuildCache.get(msg.guild_id)
     role_names = Enum.map(msg.member.roles, fn role_id -> guild.roles[role_id].name end)
     cond do
@@ -19,5 +19,9 @@ defmodule TaelBot.Commands.Helpers do
     required_level = Map.get(@roles, role, -1)
     user_level = Map.get(@roles, role_from_msg(msg), -1)
     if user_level < required_level, do: throw {:error, :insufficient_permissions}
+  end
+
+  def reply(msg, content) do
+    Nostrum.Api.Message.create(msg.channel_id, content: content, message_reference: %{message_id: msg.id})
   end
 end
