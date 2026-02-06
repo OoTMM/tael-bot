@@ -9,6 +9,9 @@ defmodule Twitch do
   defp client(), do: Twitch.Client.build()
 
   def streams(opts \\ []) do
-    Tesla.get(client(), "/streams", query: opts)
+    case Tesla.get(client(), "/streams", query: opts) do
+      {:ok, %{body: body}} -> {:ok, body}
+      res -> res
+    end
   end
 end

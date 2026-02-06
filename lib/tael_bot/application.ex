@@ -8,6 +8,7 @@ defmodule TaelBot.Application do
       TaelBot.TaskSupervisor,
       TaelBot.Repo,
       TaelBot.DiscordConsumer,
+      TaelBot.StreamsManager,
     ]
 
     opts = [strategy: :one_for_one, name: TaelBot.Supervisor]
