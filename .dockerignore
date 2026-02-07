@@ -1,9 +1,9 @@
 *
-!migrations
-!src
-!docker-entrypoint.sh
+!config
+!envs
+envs/*.overrides.env
+!lib
+!priv
+!mix.exs
+!mix.lock
 !docker-start.sh
-!pnpm-lock.yaml
-!package.json
-!rollup.config.mjs
-!tsconfig.json

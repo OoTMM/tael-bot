@@ -1,9 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e
+# Run migrations
+bin/tael_bot eval 'TaelBot.Release.migrate' || exit 1
 
-# Migrate
-pnpm migrate up
-
-# Start
-exec "$@"
+# Start the server
+exec bin/tael_bot start
