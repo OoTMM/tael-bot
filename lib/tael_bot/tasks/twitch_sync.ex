@@ -4,6 +4,7 @@ defmodule TaelBot.Tasks.TwitchSync do
 
   def run() do
     {:ok, streams} = fetch_streams()
+    chunks = Enum.chunk_every(streams, 10)
     IO.inspect(streams, label: "Fetched Twitch streams")
     :ok
   end
