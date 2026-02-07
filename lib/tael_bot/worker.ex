@@ -1,4 +1,5 @@
 defmodule TaelBot.Worker do
+  require Logger
   @optional_callbacks init: 0
   @callback init() :: any()
   @callback run(any()) :: {:update, any()} | :ok
@@ -29,6 +30,7 @@ defmodule TaelBot.Worker do
 
   def init(state) do
     send(self(), :work)
+    Logger.info("#{__MODULE__}: Worker started")
     {:ok, state}
   end
 
