@@ -12,35 +12,21 @@ defmodule TaelBot.Workers.DiscordStreamingSync do
   @impl true
   def run(%{last_update: last_update} = state) do
     now = DateTime.utc_now()
-    process_all(now, last_update)
+    process(now, last_update)
     {:update, %{state | last_update: now}}
   end
 
-  defp updated?(nil), do: true
-  defp updated?(last_update), do: TaelBot.Repo.exists?(from dsm in DiscordStreamingMessage, where: dsm.updated_at > ^last_update)
-
-  defp process_all(now, last_update) do
-    if updated?(last_update) do
-      process(now, last_update)
-    end
-  end
-
   defp process(now, last_update, last_id \\ nil) do
-    {:ok, dsm} = TaelBot.Repo.transact(fn ->
-      q = from dsm in DiscordStreamingMessage,
-        order_by: [asc: dsm.id],
-        limit: 1
+    q = from dsm in DiscordStreamingMessage,
+      order_by: [asc: dsm.id],
+      limit: 1
 
-      q = if last_update, do: (from dsm in q, where: dsm.updated_at > ^last_update), else: q
-      q = if last_id, do: (from dsm in q, where: dsm.id > ^last_id), else: q
+    q = if last_update, do: (from dsm in q, where: dsm.updated_at > ^last_update), else: q
+    q = if last_id, do: (from dsm in q, where: dsm.id > ^last_id), else: q
 
-      dsm = TaelBot.Repo.one(q)
-      if dsm do
-        process_message(now, dsm)
-      end
-      {:ok, dsm}
-    end)
+    dsm = TaelBot.Repo.one(q)
     if dsm do
+      process_message(now, dsm)
       process(now, last_update, dsm.id)
     end
   end

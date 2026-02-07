@@ -7,47 +7,33 @@ defmodule TaelBot.Workers.DiscordStreamingCleaner do
 
   def run(_) do
     mark_deleted()
-    if Repo.exists?(from dsm in DiscordStreamingMessage, where: dsm.pending_deletion == true) do
-      process()
-    end
+    process()
     :ok
   end
 
   defp process(last_id \\ nil) do
-    res = Repo.transact(fn ->
-      q = from dsm in DiscordStreamingMessage, where: dsm.pending_deletion == true, order_by: [asc: dsm.id], limit: 1
-      q = if last_id, do: (from dsm in q, where: dsm.id > ^last_id), else: q
+    q = from dsm in DiscordStreamingMessage, where: dsm.pending_deletion == true, order_by: [asc: dsm.id], limit: 1
+    q = if last_id, do: (from dsm in q, where: dsm.id > ^last_id), else: q
 
-      msg = Repo.one(q)
-      if msg do
-        service = TaelBot.Util.StreamServices.get(msg.service)
-        channel_id = TaelBot.DiscordStore.channel_id(service.channel)
-        res = case channel_id do
-          nil ->
-            {:error, {:no_channel, msg}}
-          _ ->
-            case Nostrum.Api.Message.delete(channel_id, msg.message_id) do
-              {:ok} -> {:ok, msg}
-              {:error, %{response: %{code: 10008}}} -> {:ok, msg}
-              {:error, reason} -> {:error, reason}
-            end
+    msg = Repo.one(q)
+    if msg do
+      service = TaelBot.Util.StreamServices.get(msg.service)
+      channel_id = TaelBot.DiscordStore.channel_id(service.channel)
+      if channel_id do
+        res = case Nostrum.Api.Message.delete(channel_id, msg.message_id) do
+          {:ok} -> :ok
+          {:error, %{response: %{code: 10008}}} -> :ok
+          e -> e
         end
 
         case res do
-          {:ok, _} -> Repo.delete(msg)
-          {:error, _} -> nil
+          :ok ->
+            Repo.delete(msg)
+          {:error, e} ->
+            Logger.error("DiscordStreamingCleaner: Failed to delete message #{msg.id} (#{inspect(e)})")
         end
-
-        res
-      else
-        {:ok, nil}
       end
-    end)
-
-    case res do
-      {:ok, nil} -> :ok
-      {:error, {:no_channel, msg}} -> process(msg.id)
-      {:ok, msg} -> process(msg.id)
+      process(msg.id)
     end
   end
 
