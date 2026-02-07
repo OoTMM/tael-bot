@@ -4,6 +4,7 @@ config :tael_bot,
   ecto_repos: [TaelBot.Repo]
 
 config :nostrum,
+  log_level: :warn,
   ffmpeg: false,
   youtubedl: false,
   streamlink: false,

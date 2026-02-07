@@ -6,7 +6,7 @@ defmodule TaelBot.Workers.TwitchCleanup do
   @impl true
   def run() do
     cutoff = DateTime.utc_now() |> DateTime.add(-10, :second)
-    {deleted_count, _} = TaelBot.Repo.delete_all(from ts in TwitchStream, where: ts.updated_at < ^cutoff)
+    TaelBot.Repo.delete_all(from ts in TwitchStream, where: ts.updated_at < ^cutoff)
     :ok
   end
 end

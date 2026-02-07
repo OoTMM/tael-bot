@@ -15,10 +15,4 @@ defmodule TaelBot.DiscordConsumer do
     end
     :ok
   end
-
-  @impl true
-  def handle_event(event) do
-    Logger.info("Received event: #{inspect(event)}")
-    :ok
-  end
 end
