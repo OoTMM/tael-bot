@@ -10,6 +10,7 @@ defmodule TaelBot.Schemas.DiscordStreamingMessage do
     field :message_id, :integer
     field :data, :string
     field :updated_at, :utc_datetime_usec
+    field :pending_deletion, :boolean, default: false
   end
 
   def changeset(command, attrs) do
@@ -20,6 +21,7 @@ defmodule TaelBot.Schemas.DiscordStreamingMessage do
       :message_id,
       :data,
       :updated_at,
+      :pending_deletion
     ])
   end
 end

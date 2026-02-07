@@ -13,6 +13,7 @@ defmodule TaelBot.Application do
       TaelBot.Workers.TwitchCleanup,
       TaelBot.Workers.TwitchConsumer,
       TaelBot.Workers.DiscordStreamingSync,
+      TaelBot.Workers.DiscordStreamingCleaner,
     ]
 
     opts = [strategy: :one_for_one, name: TaelBot.Supervisor]

@@ -1,6 +1,7 @@
 defmodule TaelBot.Util.StreamServices do
   @data %{
     "twitch" => %{
+      table: "twitch_streams",
       channel: "streams-twitch",
     }
   }

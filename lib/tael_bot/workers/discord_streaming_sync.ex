@@ -64,6 +64,7 @@ defmodule TaelBot.Workers.DiscordStreamingSync do
 
     case res do
       {:ok, message} -> TaelBot.Repo.update_all((from dsm in DiscordStreamingMessage, where: dsm.id == ^msg.id), set: [message_id: message.id, updated_at: now])
+      {:error, %{response: %{code: 10008}}} -> sync_message(now, %{msg | message_id: nil}, channel_id)
       {:error, _} -> Logger.error("DiscordStreamingSync: Failed to sync message #{msg.id}")
     end
   end
