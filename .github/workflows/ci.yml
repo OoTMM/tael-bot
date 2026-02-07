@@ -41,11 +41,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
-        run: |
-          sha_short=$(git rev-parse --short HEAD)
-          tag=master-$sha_short-$(date +"%s")
-          image_base=ghcr.io/ootmm/tael-bot
-          image=$image_base:$tag
-          docker build -t $image -f Dockerfile.prod .
-          docker push $image
+      - name: Build
+        run: docker build -t ghcr.io/ootmm/tael-bot:latest -f Dockerfile.prod .
+
+      - name: Push
+        run: docker push ghcr.io/ootmm/tael-bot:latest
+
+        #run: |
+        #  sha_short=$(git rev-parse --short HEAD)
+        #  tag=master-$sha_short-$(date +"%s")
+        #  image_base=ghcr.io/ootmm/tael-bot
+        #  image=$image_base:$tag
+        #  docker build -t $image -f Dockerfile.prod .
+        #  docker push $image
