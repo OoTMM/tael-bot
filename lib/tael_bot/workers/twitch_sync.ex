@@ -1,11 +1,14 @@
-defmodule TaelBot.Tasks.TwitchSync do
+defmodule TaelBot.Workers.TwitchSync do
+  use TaelBot.Worker, interval: 60_000
   alias TaelBot.Util.TwitchGames
+  alias TaelBot.Schemas.TwitchStream
   require Logger
 
+  @impl true
   def run() do
     {:ok, streams} = fetch_streams()
-    chunks = Enum.chunk_every(streams, 10)
-    IO.inspect(streams, label: "Fetched Twitch streams")
+    sync_streams(streams)
+    IO.puts("TwitchSync: Synced #{length(streams)} streams")
     :ok
   end
 
@@ -35,6 +38,34 @@ defmodule TaelBot.Tasks.TwitchSync do
         Logger.error("TwitchSync: Unexpected response from Twitch API")
         {:error, :unexpected_response}
     end
+  end
+
+  defp sync_streams(streams) do
+    Enum.chunk_every(streams, 10)
+    |> Enum.each(&sync_streams_chunk/1)
+  end
+
+  defp sync_streams_chunk(streams) do
+    TaelBot.Repo.insert_all(TwitchStream, Enum.map(streams, &stream_attrs/1), on_conflict: {:replace_all_except, [:id]}, conflict_target: :stream_id)
+  end
+
+  defp stream_attrs(stream) do
+    {:ok, started_at, _} = DateTime.from_iso8601(stream["started_at"])
+    started_at = DateTime.truncate(started_at, :second)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    %{
+      stream_id: stream["id"],
+      user_id: stream["user_id"],
+      user_name: stream["user_name"],
+      user_login: stream["user_login"],
+      title: stream["title"],
+      thumbnail_url: stream["thumbnail_url"],
+      language: stream["language"],
+      viewer_count: stream["viewer_count"],
+      started_at: started_at,
+      updated_at: now,
+    }
   end
 
   defp combo_stream?(stream) do

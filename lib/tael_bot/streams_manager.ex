@@ -12,7 +12,7 @@ defmodule TaelBot.StreamsManager do
 
   @impl true
   def handle_info(:perform, state) do
-    TaelBot.Tasks.TwitchSync.run()
+    #TaelBot.Tasks.TwitchSync.run()
     perform_cleanup()
     Process.send_after(self(), :perform, 60_000)
     {:noreply, state}
