@@ -9,8 +9,9 @@ defmodule TaelBot.Application do
       TaelBot.Repo,
       TaelBot.DiscordConsumer,
       TaelBot.StreamsManager,
-      #TaelBot.Workers.TwitchSync,
+      TaelBot.Workers.TwitchSync,
       TaelBot.Workers.TwitchCleanup,
+      TaelBot.Workers.TwitchConsumer,
     ]
 
     opts = [strategy: :one_for_one, name: TaelBot.Supervisor]

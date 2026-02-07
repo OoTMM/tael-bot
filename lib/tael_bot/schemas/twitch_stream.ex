@@ -20,6 +20,7 @@ defmodule TaelBot.Schemas.TwitchStream do
   def changeset(command, attrs) do
     command
     |> cast(attrs, [
+      :id,
       :stream_id,
       :user_id,
       :user_name,

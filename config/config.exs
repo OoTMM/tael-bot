@@ -1,10 +1,15 @@
 import Config
 
+# Logger
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id],
+  level: :info
+
 config :tael_bot,
   ecto_repos: [TaelBot.Repo]
 
 config :nostrum,
-  log_level: :warn,
   ffmpeg: false,
   youtubedl: false,
   streamlink: false,

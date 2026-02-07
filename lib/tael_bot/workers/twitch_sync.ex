@@ -5,10 +5,9 @@ defmodule TaelBot.Workers.TwitchSync do
   require Logger
 
   @impl true
-  def run() do
+  def run(_) do
     {:ok, streams} = fetch_streams()
     sync_streams(streams)
-    IO.puts("TwitchSync: Synced #{length(streams)} streams")
     :ok
   end
 
@@ -41,7 +40,8 @@ defmodule TaelBot.Workers.TwitchSync do
   end
 
   defp sync_streams(streams) do
-    Enum.chunk_every(streams, 10)
+    Enum.uniq_by(streams, fn x -> x["id"] end)
+    |> Enum.chunk_every(10)
     |> Enum.each(&sync_streams_chunk/1)
   end
 
@@ -55,6 +55,7 @@ defmodule TaelBot.Workers.TwitchSync do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     %{
+      id: Ecto.UUID.generate(),
       stream_id: stream["id"],
       user_id: stream["user_id"],
       user_name: stream["user_name"],

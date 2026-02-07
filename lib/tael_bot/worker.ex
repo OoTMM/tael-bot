@@ -1,5 +1,7 @@
 defmodule TaelBot.Worker do
-  @callback run() :: any()
+  @optional_callbacks init: 0
+  @callback init() :: any()
+  @callback run(any()) :: {:update, any()} | :ok
 
   defmacro __using__(opts) do
     quote do
@@ -13,18 +15,29 @@ defmodule TaelBot.Worker do
       end
 
       @impl true
-      def init(_) do
-        jitter = :rand.uniform(@worker_interval)
-        Process.send_after(self(), :work, jitter)
-        {:ok, nil}
-      end
+      def init(), do: []
 
       @impl true
-      def handle_info(:work, state) do
-        run()
-        Process.send_after(self(), :work, @worker_interval)
-        {:noreply, state}
-      end
+      def init(state), do: TaelBot.Worker.init(init())
+
+      @impl true
+      def handle_info(:work, state), do: TaelBot.Worker.run(__MODULE__, state, @worker_interval)
+
+      defoverridable init: 0
     end
+  end
+
+  def init(state) do
+    send(self(), :work)
+    {:ok, state}
+  end
+
+  def run(module, state, interval) do
+    state = case module.run(state) do
+      {:update, new_state} -> new_state
+      _ -> state
+    end
+    Process.send_after(self(), :work, interval)
+    {:noreply, state}
   end
 end
