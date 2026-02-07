@@ -1,0 +1,9 @@
+*
+!config
+!envs
+envs/*.overrides.env
+!lib
+!priv
+!mix.exs
+!mix.lock
+!docker-start.sh

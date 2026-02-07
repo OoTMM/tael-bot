@@ -1,0 +1,32 @@
+FROM elixir:1.19 AS build
+
+WORKDIR /app
+COPY . .
+RUN MIX_ENV=prod mix deps.get --only=prod
+RUN MIX_ENV=prod mix compile
+RUN MIX_ENV=prod mix release
+
+FROM debian:trixie-slim AS stage
+
+WORKDIR /app
+COPY --from=build /app/_build/prod/rel/tael_bot ./
+COPY --from=build /app/docker-start.sh ./
+COPY --from=build /app/envs ./envs
+COPY --from=build /app/priv ./priv
+
+FROM debian:trixie-slim
+
+ENV MIX_ENV=prod
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+ENV TZ=UTC
+
+WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates tzdata \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p data
+
+COPY --from=stage /app ./
+
+CMD ["/app/docker-start.sh"]
