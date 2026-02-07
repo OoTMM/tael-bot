@@ -13,6 +13,10 @@ defmodule TaelBot.Repo.Migrations.AddDiscordStreamMessages do
       )
     """)
 
-    execute("CREATE UNIQUE INDEX idx_discord_stream_messages ON discord_streaming_messages (message_id)");
+    execute("CREATE UNIQUE INDEX idx_discord_streaming_messages_message_id ON discord_streaming_messages (message_id)");
+  end
+
+  def down do
+    execute("DROP TABLE IF EXISTS discord_streaming_messages")
   end
 end
