@@ -13,7 +13,7 @@ defmodule TaelBot.Workers.TwitchConsumer do
   @impl true
   def run(%{last_update: last_update} = state) do
     process(last_update)
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    now = DateTime.utc_now()
     {:update, %{state | last_update: now}}
   end
 
@@ -34,8 +34,7 @@ defmodule TaelBot.Workers.TwitchConsumer do
 
   defp update(streams) do
     data = Enum.map(streams, &build/1)
-    TaelBot.Repo.insert_all(TaelBot.Schemas.DiscordStreamingMessage, data, on_conflict: {:replace_all_except, [:service, :service_id]}, conflict_target: [:service, :service_id])
-    IO.puts("TwitchConsumer: Updated #{length(streams)} streams")
+    TaelBot.Repo.insert_all(TaelBot.Schemas.DiscordStreamingMessage, data, on_conflict: {:replace_all_except, [:id, :service, :service_id, :message_id]}, conflict_target: [:service, :service_id])
   end
 
   defp build(stream) do
@@ -44,7 +43,7 @@ defmodule TaelBot.Workers.TwitchConsumer do
       service: "twitch",
       service_id: stream.id,
       data: Jason.encode!(embed),
-      updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      updated_at: DateTime.utc_now()
     }
   end
 
@@ -60,7 +59,7 @@ defmodule TaelBot.Workers.TwitchConsumer do
     |> Nostrum.Struct.Embed.put_title(stream.title)
     |> Nostrum.Struct.Embed.put_url(url)
     |> Nostrum.Struct.Embed.put_author(stream.user_name, url, nil)
-    |> Nostrum.Struct.Embed.put_thumbnail(thumbnail_url)
+    |> Nostrum.Struct.Embed.put_image(thumbnail_url)
     |> Nostrum.Struct.Embed.put_footer(footer)
   end
 

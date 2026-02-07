@@ -2,14 +2,14 @@ defmodule TaelBot.Schemas.DiscordStreamingMessage do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key false
+  @primary_key {:id, :integer, []}
 
   schema "discord_streaming_messages" do
     field :service, :string, primary_key: true
     field :service_id, :string, primary_key: true
-    field :message_id, :string
+    field :message_id, :integer
     field :data, :string
-    field :updated_at, :utc_datetime
+    field :updated_at, :utc_datetime_usec
   end
 
   def changeset(command, attrs) do

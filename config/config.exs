@@ -23,4 +23,5 @@ config :tesla, adapter: Tesla.Adapter.Mint
 
 config :tael_bot, TaelBot.Repo,
   default_transaction_mode: :immediate,
-  journal_mode: :wal
+  journal_mode: :wal,
+  busy_timeout: 10_000

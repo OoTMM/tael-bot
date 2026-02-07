@@ -14,7 +14,7 @@ defmodule TaelBot.Schemas.TwitchStream do
     field :language, :string
     field :viewer_count, :integer
     field :started_at, :utc_datetime
-    field :updated_at, :utc_datetime
+    field :updated_at, :utc_datetime_usec
   end
 
   def changeset(command, attrs) do

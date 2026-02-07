@@ -51,8 +51,7 @@ defmodule TaelBot.Workers.TwitchSync do
 
   defp stream_attrs(stream) do
     {:ok, started_at, _} = DateTime.from_iso8601(stream["started_at"])
-    started_at = DateTime.truncate(started_at, :second)
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    now = DateTime.utc_now()
 
     %{
       id: Ecto.UUID.generate(),
