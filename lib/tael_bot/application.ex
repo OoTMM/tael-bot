@@ -4,10 +4,10 @@ defmodule TaelBot.Application do
   @impl true
   def start(_type, _args) do
     children = [
+      TaelBot.Repo,
       TaelBot.DiscordStore,
       Twitch,
       TaelBot.TaskSupervisor,
-      TaelBot.Repo,
       TaelBot.DiscordConsumer,
       TaelBot.Workers.TwitchSync,
       TaelBot.Workers.TwitchCleanup,

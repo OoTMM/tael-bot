@@ -1,9 +1,12 @@
 defmodule TaelBot.Commands.Handlers.Roles do
   import TaelBot.Commands.Helpers
   alias TaelBot.Schemas.Guild
+  import Ecto.Query
 
   @handlers %{
     "msg" => :handle_msg,
+    "add" => :handle_add,
+    "remove" => :handle_remove,
   }
 
   @handlers_msg %{
@@ -61,6 +64,31 @@ defmodule TaelBot.Commands.Handlers.Roles do
       end
     else
       reply(msg, "Role message not set. Use `!roles msg set` to create it.")
+    end
+  end
+
+  def handle_add(msg, arg) do
+    [emoji, role] = String.split(arg, " ", parts: 2) |> Enum.map(&String.trim/1)
+    guild_cache = Nostrum.Cache.GuildCache.get!(msg.guild_id)
+    roles = guild_cache.roles |> Enum.map(fn {k, v} -> {v.name, k} end) |> Enum.into(%{})
+    role_id = Map.get(roles, role)
+    if role_id do
+      TaelBot.Repo.insert_all(TaelBot.Schemas.GuildRole, [%{guild_id: msg.guild_id, role_id: role_id, emoji: emoji}])
+      reply(msg, "Role added: #{role} with emoji #{emoji}")
+    else
+      reply(msg, "Role not found: #{role}")
+    end
+  end
+
+  def handle_remove(msg, arg) do
+    guild_cache = Nostrum.Cache.GuildCache.get!(msg.guild_id)
+    roles = guild_cache.roles |> Enum.map(fn {k, v} -> {v.name, k} end) |> Enum.into(%{})
+    role_id = Map.get(roles, arg)
+    if role_id do
+      TaelBot.Repo.delete_all(from gr in TaelBot.Schemas.GuildRole, where: gr.guild_id == ^msg.guild_id and gr.role_id == ^role_id)
+      reply(msg, "Role removed: #{arg}")
+    else
+      reply(msg, "Role not found: #{arg}")
     end
   end
 end

@@ -12,6 +12,13 @@ defmodule TaelBot.DiscordStore do
     {:ok, nil}
   end
 
+  def guild(id) do
+    case :ets.lookup(__MODULE__.Guilds, id) do
+      [{_, guild}] -> guild
+      [] -> nil
+    end
+  end
+
   def guild_id() do
     case :ets.lookup(__MODULE__, :guild) do
       [{:guild, id}] -> id
