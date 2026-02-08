@@ -7,32 +7,20 @@ on:
     branches: [ '**' ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Elixir
-        uses: erlef/setup-beam@v1
-        with:
-          elixir-version: '1.19'
-          otp-version: '28'
-
-      - name: Install dependencies
-        run: |
-          mix local.hex --force
-          mix local.rebar --force
-          mix deps.get
-
-      - name: Compile
-        run: mix compile
-
   publish:
-    needs: test
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    outputs:
+      image_name: ${{ steps.image.outputs.image_name }}
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set image metadata
+        id: image
+        run: |
+          IMAGE_TAG=master-${{ github.sha }}
+          IMAGE_NAME="ghcr.io/ootmm/tael-bot:${IMAGE_TAG}"
+          echo "image_name=$IMAGE_NAME" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -42,7 +30,32 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
-        run: docker build -t ghcr.io/ootmm/tael-bot:latest -f Dockerfile.prod .
+        run: docker build -t ${{ steps.image.outputs.image_name }} -f Dockerfile.prod .
 
-      - name: Push
-        run: docker push ghcr.io/ootmm/tael-bot:latest
+      - name: Publish
+        run: docker push ${{ steps.image.outputs.image_name }}
+
+  deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Infra Repo
+        uses: actions/checkout@v3
+        with:
+          repository: ootmm/infra
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "max.bacoux+ootmm-bot@gmail.com"
+          git config --global user.name "OoTMM Bot"
+
+      - name: Update Image Tag
+        run: |
+          sed -i "s|ghcr.io/ootmm/tael-bot:.*|$IMAGE_NAME|g" stacks/tael-bot/compose.yaml
+
+      - name: Commit and Push Changes
+        run: |
+          git add stacks/tael-bot/compose.yaml
+          git commit -m "Update tael-bot image to $IMAGE_NAME"
+          git push origin master
