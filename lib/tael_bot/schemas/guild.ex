@@ -5,5 +5,6 @@ defmodule TaelBot.Schemas.Guild do
 
   schema "guilds" do
     field :role_message_id, :integer
+    field :role_channel_id, :integer
   end
 end
