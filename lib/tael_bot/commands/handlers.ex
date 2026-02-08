@@ -5,6 +5,7 @@ defmodule TaelBot.Commands.Handlers do
   @handlers %{
     "list" => TaelBot.Commands.Handlers.List,
     "cmd" => TaelBot.Commands.Handlers.Cmd,
+    "roles" => TaelBot.Commands.Handlers.Roles,
   }
 
   @spec dispatch(any()) :: any()

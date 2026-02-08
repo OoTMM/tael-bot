@@ -16,6 +16,7 @@ config :nostrum,
   gateway_intents: [
     :guilds,
     :guild_messages,
+    :guild_message_reactions,
     :message_content,
   ]
 
