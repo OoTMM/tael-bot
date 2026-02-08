@@ -52,6 +52,7 @@ jobs:
 
       - name: Update Image Tag
         run: |
+          IMAGE_NAME="${{ needs.publish.outputs.image_name }}"
           sed -i "s|ghcr.io/ootmm/tael-bot:.*|$IMAGE_NAME|g" stacks/tael-bot/compose.yaml
 
       - name: Commit and Push Changes
