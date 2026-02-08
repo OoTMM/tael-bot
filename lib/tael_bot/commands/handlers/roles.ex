@@ -47,7 +47,7 @@ defmodule TaelBot.Commands.Handlers.Roles do
   end
 
   def handle_msg_create(msg, _arg) do
-    case Nostrum.Api.Message.create(msg.channel_id, content: "PLACEHOLDER ROLE MESSAGE") do
+    case Nostrum.Api.Message.create(msg.channel_id, content: "PLACEHOLDER ROLE MESSAGE", allowed_mentions: :none) do
       {:ok, message} ->
         TaelBot.Repo.insert_all(Guild, [%{id: msg.guild_id, role_channel_id: msg.channel_id, role_message_id: message.id}], on_conflict: {:replace, [:role_channel_id, :role_message_id]}, conflict_target: :id)
       {:error, _} ->
