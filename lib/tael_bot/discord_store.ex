@@ -7,6 +7,8 @@ defmodule TaelBot.DiscordStore do
   def init(_) do
     :ets.new(__MODULE__, [:named_table, :public, :set, read_concurrency: true])
     :ets.new(__MODULE__.Channels, [:named_table, :public, :set, read_concurrency: true])
+    :ets.new(__MODULE__.Guilds, [:named_table, :public, :set, read_concurrency: true])
+    send(self(), :reload_guilds)
     {:ok, nil}
   end
 
@@ -58,5 +60,13 @@ defmodule TaelBot.DiscordStore do
 
   defp delete_channel(name) do
     :ets.delete(__MODULE__.Channels, name)
+  end
+
+  @impl true
+  def handle_info(:reload_guilds, state) do
+    guilds = TaelBot.Repo.all(TaelBot.Schemas.Guild)
+    Enum.each(guilds, fn g -> :ets.insert(__MODULE__.Guilds, {g.id, %{id: g.id, role_channel_id: g.role_channel_id, role_message_id: g.role_message_id}}) end)
+    Process.send_after(self(), :reload_guilds, 60_000)
+    {:noreply, state}
   end
 end
