@@ -20,10 +20,14 @@ defmodule TaelBot.Workers.DiscordStreamingCleaner do
       service = TaelBot.Util.StreamServices.get(msg.service)
       channel_id = TaelBot.DiscordStore.channel_id(service.channel)
       if channel_id do
-        res = case Nostrum.Api.Message.delete(channel_id, msg.message_id) do
-          {:ok} -> :ok
-          {:error, %{response: %{code: 10008}}} -> :ok
-          e -> e
+        res = if msg.message_id do
+          case Nostrum.Api.Message.delete(channel_id, msg.message_id) do
+            {:ok} -> :ok
+            {:error, %{response: %{code: 10008}}} -> :ok
+            e -> e
+          end
+        else
+          :ok
         end
 
         case res do
