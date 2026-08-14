@@ -151,9 +151,6 @@ func isStreamValid(stream *twitch.Stream) bool {
 		return false
 	}
 
-	// DEBUG
-	return true
-
 	return regexComboRando.MatchString(stream.Title)
 }
 

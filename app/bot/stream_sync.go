@@ -50,9 +50,45 @@ func (s *StreamSync) Run() error {
 	}
 
 	slog.Info("syncing streams to discord")
-	err := s.update()
+
+	err := s.clean()
 	if err != nil {
 		return err
+	}
+
+	err = s.update()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *StreamSync) clean() error {
+	orphans, err := s.stores.DiscordStreamTwitch.GetOrphaned(s.ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, orphan := range orphans {
+		err = s.discord.ChannelMessageDelete(s.channelId, orphan)
+		if err != nil {
+			restErr, ok := err.(*discordgo.RESTError)
+			if ok && restErr.Response != nil && restErr.Response.StatusCode == 404 {
+				slog.Warn("message not found, deleting from store", "message_id", orphan)
+				err = s.stores.DiscordStreamTwitch.Delete(s.ctx, orphan)
+				if err != nil {
+					slog.Error("failed to delete orphaned message from store", "message_id", orphan, "error", err)
+				}
+				continue
+			}
+		} else {
+			slog.Info("deleted orphaned message", "message_id", orphan)
+			err = s.stores.DiscordStreamTwitch.Delete(s.ctx, orphan)
+			if err != nil {
+				slog.Error("failed to delete orphaned message from store", "message_id", orphan, "error", err)
+			}
+		}
 	}
 
 	return nil

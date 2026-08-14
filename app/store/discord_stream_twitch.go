@@ -43,3 +43,40 @@ func (s *DiscordStreamTwitchStore) GetMessageID(ctx context.Context, streamID st
 
 	return messageID, nil
 }
+
+func (s *DiscordStreamTwitchStore) Delete(ctx context.Context, id string) error {
+	const query = `
+		DELETE FROM discord_streams_twitch WHERE id = ?
+	`
+
+	_, err := s.db.ExecContext(ctx, query, id)
+	return err
+}
+
+func (s *DiscordStreamTwitchStore) GetOrphaned(ctx context.Context) ([]string, error) {
+	const query = `
+		SELECT id FROM discord_streams_twitch
+		WHERE stream_id NOT IN (SELECT id FROM streams_twitch)
+	`
+
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []string
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
