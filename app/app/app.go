@@ -11,6 +11,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/OoTMM/tael-bot/app/bot"
 	"github.com/OoTMM/tael-bot/app/store"
 	"github.com/OoTMM/tael-bot/app/streams"
 	_ "modernc.org/sqlite"
@@ -59,6 +60,7 @@ func Run() {
 	stores := store.NewStores(db)
 
 	var wg sync.WaitGroup
+	wg.Go(func() { bot.Run(ctx, stores) })
 	wg.Go(func() { streams.Run(ctx, stores) })
 	slog.Info("app started")
 	wg.Wait()
