@@ -49,10 +49,22 @@ func work(ctx context.Context, store *store.Stores) error {
 		discord: discord,
 	}
 
+	ready := make(chan struct{})
+	var once sync.Once
+	discord.AddHandler(func(s *discordgo.Session, gc *discordgo.GuildCreate) {
+		once.Do(func() { close(ready) })
+	})
+
 	if err := discord.Open(); err != nil {
 		return err
 	}
 	defer discord.Close()
+
+	select {
+	case <-ready:
+	case <-ctx.Done():
+		return nil
+	}
 
 	slog.Info("bot worker started")
 	err = worker.run()
