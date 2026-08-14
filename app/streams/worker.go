@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/OoTMM/tael-bot/app/domain"
+	"github.com/OoTMM/tael-bot/app/store"
 	twitch "github.com/adeithe/go-twitch/api"
 )
 
@@ -25,14 +27,15 @@ type TwitchWorker struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	client *twitch.Client
+	store  *store.StreamTwitchStore
 }
 
-func Run(ctx context.Context) {
+func Run(ctx context.Context, store *store.StreamTwitchStore) {
 	regexOotmm = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])ootx?mm(?:[^a-z0-9]|$)`)
 	regexComboRando = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])combo rando(mizer)?(?:[^a-z0-9]|$)`)
 
 	for ctx.Err() == nil {
-		err := work(ctx)
+		err := work(ctx, store)
 		if err != nil && ctx.Err() == nil {
 			slog.Error("twitch worker error", "error", err)
 		}
@@ -44,7 +47,7 @@ func Run(ctx context.Context) {
 	}
 }
 
-func work(ctx context.Context) error {
+func work(ctx context.Context, store *store.StreamTwitchStore) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -58,6 +61,7 @@ func work(ctx context.Context) error {
 		ctx:    ctx,
 		cancel: cancel,
 		client: client,
+		store:  store,
 	}
 
 	slog.Info("twitch worker started")
@@ -87,15 +91,54 @@ func (w *TwitchWorker) run() error {
 }
 
 func (w *TwitchWorker) tick() error {
-	slog.Info("synchronizing twitch streams")
+	err := w.clean()
+	if err != nil {
+		return err
+	}
+
+	err = w.sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (w *TwitchWorker) sync() error {
 	streams, err := w.poll()
 	if err != nil {
 		return err
 	}
 
+	slog.Info("synchronizing twitch streams", "count", len(streams))
+
 	for _, stream := range streams {
-		slog.Info("found stream", "user", stream.UserName, "title", stream.Title, "game_id", stream.GameID)
+		err := w.store.Upsert(w.ctx, &domain.StreamTwitch{
+			ID:           stream.ID,
+			UserID:       stream.UserID,
+			UserLogin:    stream.UserLogin,
+			UserName:     stream.UserName,
+			Title:        stream.Title,
+			Language:     stream.Language,
+			ThumbnailURL: stream.ThumbnailURL,
+			ViewerCount:  stream.ViewerCount,
+			StartedAt:    stream.StartedAt,
+			SyncedAt:     time.Now(),
+		})
+		if err != nil {
+			return err
+		}
 	}
+	return nil
+}
+
+func (w *TwitchWorker) clean() error {
+	olderThan := time.Now().Add(-5 * time.Minute)
+	err := w.store.DeleteOld(w.ctx, olderThan)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

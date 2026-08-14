@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"log"
 	"log/slog"
 	"os"
@@ -9,8 +11,26 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/OoTMM/tael-bot/app/store"
 	"github.com/OoTMM/tael-bot/app/streams"
+	_ "modernc.org/sqlite"
 )
+
+func connectDB(ctx context.Context) (*sql.DB, error) {
+	/* Connect to the database */
+	dsn := os.Getenv("GOOSE_DBSTRING") + "?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)&_pragma=foreign_keys(ON)"
+	db, err := sql.Open("sqlite", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to the database: %w", err)
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to ping the database: %w", err)
+	}
+
+	return db, nil
+}
 
 func Run() {
 	/* Configure logger */
@@ -27,8 +47,19 @@ func Run() {
 		stop()
 	}()
 
+	/* Create the database connection */
+	db, err := connectDB(ctx)
+	if err != nil {
+		slog.Error("failed to connect to the database", "error", err)
+		return
+	}
+	defer db.Close()
+
+	/* Create the stores */
+	streamTwitchStore := store.NewStreamTwitchStore(db)
+
 	var wg sync.WaitGroup
-	wg.Go(func() { streams.Run(ctx) })
+	wg.Go(func() { streams.Run(ctx, streamTwitchStore) })
 	slog.Info("app started")
 	wg.Wait()
 }
