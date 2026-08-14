@@ -1,15 +1,1 @@
-/_build
-/cover
-/deps
-/doc
-/tmp
-/old
-/.elixir_ls
-/.vscode
-/envs/*.overrides*
-/data
-
-erl_crash.dump
-*.ez
-tael_bot-*.tar
-
+/.env.local
