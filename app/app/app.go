@@ -56,10 +56,10 @@ func Run() {
 	defer db.Close()
 
 	/* Create the stores */
-	streamTwitchStore := store.NewStreamTwitchStore(db)
+	stores := store.NewStores(db)
 
 	var wg sync.WaitGroup
-	wg.Go(func() { streams.Run(ctx, streamTwitchStore) })
+	wg.Go(func() { streams.Run(ctx, stores) })
 	slog.Info("app started")
 	wg.Wait()
 }

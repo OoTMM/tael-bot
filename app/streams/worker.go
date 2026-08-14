@@ -30,7 +30,7 @@ type TwitchWorker struct {
 	store  *store.StreamTwitchStore
 }
 
-func Run(ctx context.Context, store *store.StreamTwitchStore) {
+func Run(ctx context.Context, store *store.Stores) {
 	regexOotmm = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])ootx?mm(?:[^a-z0-9]|$)`)
 	regexComboRando = regexp.MustCompile(`(?i)(?:^|[^a-z0-9])combo rando(mizer)?(?:[^a-z0-9]|$)`)
 
@@ -47,7 +47,7 @@ func Run(ctx context.Context, store *store.StreamTwitchStore) {
 	}
 }
 
-func work(ctx context.Context, store *store.StreamTwitchStore) error {
+func work(ctx context.Context, store *store.Stores) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -61,7 +61,7 @@ func work(ctx context.Context, store *store.StreamTwitchStore) error {
 		ctx:    ctx,
 		cancel: cancel,
 		client: client,
-		store:  store,
+		store:  store.StreamTwitch,
 	}
 
 	slog.Info("twitch worker started")
