@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+
+FROM golang:1.26.6-alpine AS builder
+WORKDIR /src
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /usr/local/bin/tael-bot ./app
+
+FROM gcr.io/distroless/static-debian12:nonroot
+ENV TAELBOT_ENV=production
+ENV DATA_DIR=/data
+VOLUME /data
+
+COPY --from=builder /usr/local/bin/tael-bot /usr/local/bin/tael-bot
+
+USER nonroot:nonroot
+ENTRYPOINT ["/usr/local/bin/tael-bot"]
