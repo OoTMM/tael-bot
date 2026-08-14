@@ -118,7 +118,7 @@ func (w *TwitchWorker) poll() ([]*twitch.Stream, error) {
 	var cursor string
 	data := make([]*twitch.Stream, 0, 100)
 
-	req := w.client.Streams.List().GameID(TwitchGameOcarinaOfTime, TwitchGameOcarinaOfTimeMQ, TwitchGameMajorasMask, TwitchGameRetro, TwitchGameSoftwareDevelopment).First(100)
+	req := w.client.Streams.List().GameID(TwitchGameOcarinaOfTime, TwitchGameOcarinaOfTimeMQ, TwitchGameMajorasMask, TwitchGameRetro, TwitchGameSoftwareDevelopment).Type("live").First(100)
 	for {
 		streams, err := req.After(cursor).Do(w.ctx)
 		if err != nil {
